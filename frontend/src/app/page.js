@@ -8,7 +8,12 @@ import interactionPlugin from '@fullcalendar/interaction'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
 import styles from './page.module.css'
-import axios from 'axios'
+
+import TelegramWebApp from '../components/TelegramWebApp/TelegramWebApp'
+import CalendarView from '../components/CalendarView/CalendarView'
+import DateRange from '../components/DateRange/DateRange'
+import BottomBar from '../components/BottomBar/BottomBar'
+import useTasks from '../components/Tasks/useTasks'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
@@ -20,24 +25,6 @@ export default function Home() {
   const nextCalendarRef = useRef(null);
   const swiperRef = useRef(null);
 
-  // Настройка Telegram Web App
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-web-app.js';
-    script.async = true;
-    script.onload = () => {
-      if (window.Telegram?.WebApp) {
-        const webApp = window.Telegram.WebApp;
-        webApp.ready();
-        webApp.expand();
-        webApp.setHeaderColor('#f5f7fa');
-        webApp.setBackgroundColor('#f5f7fa');
-      } else {
-        alert("error");
-      }
-    };
-    document.head.appendChild(script);
-  }, []);
 
   // Получение задач из API
   useEffect(() => {
@@ -170,7 +157,10 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.dateRange}>{formatDateRange()}</div>
+
+      <TelegramWebApp />
+      <DateRange calendarRef={currentCalendarRef} view={view} />
+
       <Swiper
         ref={swiperRef}
         slidesPerView={1}
@@ -255,31 +245,12 @@ export default function Home() {
           />
         </SwiperSlide>
       </Swiper>
-      <div className={styles.bottomBar}>
-        <div className={styles.viewToggle}>
-          <button
-            onClick={() => handleViewChange('dayGridMonth')}
-            className={`${styles.toggleButton} ${view === 'dayGridMonth' ? styles.active : ''}`}
-          >
-            М
-          </button>
-          <button
-            onClick={() => handleViewChange('timeGridWeek')}
-            className={`${styles.toggleButton} ${view === 'timeGridWeek' ? styles.active : ''}`}
-          >
-            Н
-          </button>
-          <button
-            onClick={() => handleViewChange('timeGridDay')}
-            className={`${styles.toggleButton} ${view === 'timeGridDay' ? styles.active : ''}`}
-          >
-            Д
-          </button>
-        </div>
-        <button onClick={handleTodayClick} className={styles.todayButton}>
-          Сегодня
-        </button>
-      </div>
+      
+      <BottomBar 
+        view={view} 
+        onViewChange={handleViewChange} 
+        onTodayClick={handleTodayClick}
+      />
     </main>
   );
 }

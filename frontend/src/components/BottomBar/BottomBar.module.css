@@ -1,0 +1,94 @@
+.bottomBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    background: #ffffff;
+    border-top: 1px solid #e0e6ed;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .bottomBar {
+        padding: 8px 10px;
+        gap: 15px;
+    }
+}
+
+.viewToggle {
+    display: flex;
+    background: #e0e6ed;
+    border-radius: 20px;
+    padding: 2px;
+    position: relative;
+}
+
+.toggleButton {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: #333333;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s;
+}
+
+.toggleButton.active {
+    color: #ffffff;
+}
+
+.viewToggle::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    width: 33.33%;
+    background: #4a90e2;
+    border-radius: 20px;
+    transition: transform 0.2s ease-in-out;
+    z-index: 1;
+}
+
+.viewToggle:has(.toggleButton:nth-child(1).active)::before {
+    transform: translateX(0);
+}
+
+.viewToggle:has(.toggleButton:nth-child(2).active)::before {
+    transform: translateX(100%);
+}
+
+.viewToggle:has(.toggleButton:nth-child(3).active)::before {
+    transform: translateX(200%);
+}
+
+@media (max-width: 768px) {
+    .toggleButton {
+        padding: 4px 8px;
+        font-size: 0.7em;
+    }
+}
+
+.todayButton {
+    padding: 6px 12px;
+    background: #4a90e2;
+    border: none;
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.todayButton:hover {
+    background: #357abd;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .todayButton {
+        padding: 4px 8px;
+        font-size: 0.8em;
+    }
+}

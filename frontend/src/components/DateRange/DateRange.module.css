@@ -1,0 +1,15 @@
+.dateRange {
+    padding: 10px;
+    text-align: center;
+    font-size: 1em;
+    color: #333333;
+    background: #ffffff;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+@media (max-width: 768px) {
+    .dateRange {
+        font-size: 0.9em;
+        padding: 8px;
+    }
+}
