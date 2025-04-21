@@ -1,6 +1,10 @@
-from database.database import Database
-from database.models import User, Task, PriorityEnum
+
 from datetime import date
+from typing import Optional
+
+from database.database import Database
+from database.models import User, PriorityEnum, Task
+
 
 class UserRepository:
     def __init__(self, db: Database):
@@ -148,5 +152,12 @@ class TaskRepository:
             return tasks
         except Exception as e:
             raise e
+        finally:
+            session.close()
+
+    def get_task(self, task_id: int) -> Optional[Task]:
+        session = self.db.get_session()
+        try:
+            return session.query(Task).filter(Task.id == task_id).first()
         finally:
             session.close()

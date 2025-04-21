@@ -5,8 +5,11 @@ from database.database import Database
 from database.repository import UserRepository, TaskRepository
 from datetime import date
 
+import api.backend as api
+import uvicorn
+
 if __name__ == "__main__":
-    
+
     # База данных
     db = Database(dotenv_path="../.env")
     user_repo = UserRepository(db)
@@ -44,7 +47,7 @@ if __name__ == "__main__":
     task_repo.delete_task(task1_id)
     task_repo.delete_task(task2_id)
     task_repo.delete_task(task3_id)
-    user_repo.delete_user(user_id)
+    # user_repo.delete_user(user_id)
 
     # -------------------------
 
@@ -53,3 +56,5 @@ if __name__ == "__main__":
     bot = BotProcessor(ai_connector)
 
     bot.run()
+
+    uvicorn.run(api.app, host="0.0.0.0", port=8000)
