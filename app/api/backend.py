@@ -46,7 +46,7 @@ class TaskBase(BaseModel):
     end_time: Optional[str] = None
     priority: PriorityEnum = PriorityEnum.medium
     completed: bool = False
-    date: Optional[date] = None
+    date: date
     ai_notes: Optional[str] = None
 
 
@@ -143,6 +143,17 @@ def read_user_tasks(user_id: int):
             detail="User not found"
         )
     return task_repo.get_tasks_by_user(user_id)
+
+
+@app.get("/users_tg/{telegram_id}/tasks/", response_model=List[TaskResponse])
+def read_user_tasks(telegram_id: int):
+    user = user_repo.get_user_by_telegram_id(telegram_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return task_repo.get_tasks_by_user(user.id)
 
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse)

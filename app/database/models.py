@@ -10,9 +10,9 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(Integer, nullable=False, unique=True)
     name = Column(String, nullable=False)
     user_info = Column(String, nullable=True)
-    tasks_info = Column(String, nullable=True)
 
     tasks = relationship("Task", back_populates="user")
 
