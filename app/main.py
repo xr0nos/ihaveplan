@@ -7,6 +7,7 @@ from datetime import date
 
 import api.backend as api
 import uvicorn
+import threading
 
 if __name__ == "__main__":
 
@@ -57,4 +58,6 @@ if __name__ == "__main__":
 
     bot.run()
 
-    uvicorn.run(api.app, host="0.0.0.0", port=8000)
+    def run_api():
+        uvicorn.run(api.app, host="0.0.0.0", port=8000)
+    threading.Thread(target=run_api).start()
