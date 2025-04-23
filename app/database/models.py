@@ -1,16 +1,18 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from database.database import Base
+
 import enum
+
+from database.database import Base
 
 
 class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(Integer, nullable=False, unique=True)
     name = Column(String, nullable=False)
     user_info = Column(String, nullable=True)
-    tasks_info = Column(String, nullable=True)
 
     tasks = relationship("Task", back_populates="user")
 

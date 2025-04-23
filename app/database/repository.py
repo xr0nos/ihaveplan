@@ -1,15 +1,19 @@
-from database.database import Database
-from database.models import User, Task, PriorityEnum
+
 from datetime import date
+from typing import Optional
+
+from database.database import Database
+from database.models import User, PriorityEnum, Task
+
 
 class UserRepository:
     def __init__(self, db: Database):
         self.db = db
 
-    def add_user(self, name: str, user_info: str = None, tasks_info: str = None) -> int:
+    def add_user(self, name: str, telegram_id: int, user_info: str = None) -> int:
         session = self.db.get_session()
         try:
-            user = User(name=name, user_info=user_info, tasks_info=tasks_info)
+            user = User(name=name, user_info=user_info, telegram_id=telegram_id)
             session.add(user)
             session.commit()
             return user.id
@@ -19,7 +23,7 @@ class UserRepository:
         finally:
             session.close()
 
-    def update_user(self, user_id: int, name: str = None, user_info: str = None, tasks_info: str = None):
+    def update_user(self, user_id: int, name: str = None, user_info: str = None):
         session = self.db.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -28,8 +32,6 @@ class UserRepository:
                     user.name = name
                 if user_info is not None:
                     user.user_info = user_info
-                if tasks_info is not None:
-                    user.tasks_info = tasks_info
                 session.commit()
             return user
         except Exception as e:
@@ -57,6 +59,14 @@ class UserRepository:
             return session.query(User).filter_by(id=user_id).first()
         finally:
             session.close()
+
+    def get_user_by_telegram_id(self, telegram_id: int) -> User:
+        session = self.db.get_session()
+        try:
+            return session.query(User).filter_by(telegram_id=telegram_id).first()
+        finally:
+            session.close()
+
 
 class TaskRepository:
     def __init__(self, db: Database):
@@ -148,5 +158,12 @@ class TaskRepository:
             return tasks
         except Exception as e:
             raise e
+        finally:
+            session.close()
+
+    def get_task(self, task_id: int) -> Optional[Task]:
+        session = self.db.get_session()
+        try:
+            return session.query(Task).filter(Task.id == task_id).first()
         finally:
             session.close()
