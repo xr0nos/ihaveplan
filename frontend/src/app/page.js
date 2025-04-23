@@ -18,49 +18,42 @@ import useTasks from '../components/Tasks/useTasks'
 export default function Home() {
   const [date, setDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState('timeGridDay');
+  const [userId, setUserId] = useState(null);
   const currentCalendarRef = useRef(null);
   const prevCalendarRef = useRef(null);
   const nextCalendarRef = useRef(null);
   const swiperRef = useRef(null);
 
-
   // Получение задач из API
   useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        setTasks([
-          {
-            id: 1,
-            title: 'Утренняя зарядка',
-            startTime: '08:00',
-            endTime: '08:30',
-            priority: 'low',
-            completed: false,
-            date: new Date().toISOString().split('T')[0],
-          },
-          {
-            id: 2,
-            title: 'Встреча',
-            startTime: '10:30',
-            endTime: '11:30',
-            priority: 'high',
-            completed: false,
-            date: new Date().toISOString().split('T')[0],
-          }
-        ]);
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!userId) return;
+    fetch(`http://localhost:8000/users_tg/${userId}/tasks/`)
+      .then((response) => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+      })
+      .then((data) => {
+        const formattedTasks = data.map((task) => ({
+          id: task.id,
+          title: task.title,
+          startTime: task.start_time,
+          endTime: task.end_time,
+          priority: task.priority,
+          completed: task.completed,
+          date: task.date,
+        }));
+        setTasks(formattedTasks);
+      })
+      .catch((err) => console.error('Fetch error:', err))
+      .finally(() => setLoading(false));
+  }, [userId]);
 
-    fetchTasks();
-    handleViewChange(view);
-  }, [date]);
+  // useEffect(() => {
+  //   console.log('Tasks updated:', tasks);
+  //   handleViewChange(view);
+  // }, [date]);
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -158,7 +151,7 @@ export default function Home() {
   return (
     <main className={styles.main}>
 
-      <TelegramWebApp />
+      <TelegramWebApp onUserIdDetected={setUserId} />
       <DateRange calendarRef={currentCalendarRef} view={view} />
 
       <Swiper
