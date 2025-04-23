@@ -10,15 +10,12 @@ import 'swiper/css'
 import styles from './page.module.css'
 
 import TelegramWebApp from '../components/TelegramWebApp/TelegramWebApp'
-import CalendarView from '../components/CalendarView/CalendarView'
 import DateRange from '../components/DateRange/DateRange'
 import BottomBar from '../components/BottomBar/BottomBar'
-import useTasks from '../components/Tasks/useTasks'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [view, setView] = useState('timeGridDay');
   const [userId, setUserId] = useState(null);
   const currentCalendarRef = useRef(null);
@@ -46,14 +43,8 @@ export default function Home() {
         }));
         setTasks(formattedTasks);
       })
-      .catch((err) => console.error('Fetch error:', err))
-      .finally(() => setLoading(false));
+      .catch((err) => console.error('Fetch error:', err));
   }, [userId]);
-
-  // useEffect(() => {
-  //   console.log('Tasks updated:', tasks);
-  //   handleViewChange(view);
-  // }, [date]);
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -130,29 +121,11 @@ export default function Home() {
     },
   }));
 
-  const formatDateRange = () => {
-    if (!currentCalendarRef.current) return '';
-    const calendarApi = currentCalendarRef.current.getApi();
-    const start = calendarApi.view.activeStart;
-  
-    const options = { day: 'numeric', month: 'long', year: 'numeric' };
-    if (view === 'dayGridMonth') {
-      const currentDate = new Date(calendarApi.getDate());
-      return currentDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-    } else if (view === 'timeGridDay') {
-      return start.toLocaleDateString('ru-RU', options);
-    } else {
-      const end = calendarApi.view.activeEnd;
-      return `${start.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} – 
-        ${end.toLocaleDateString('ru-RU', options)}`;
-    }
-  };
-
   return (
     <main className={styles.main}>
 
       <TelegramWebApp onUserIdDetected={setUserId} />
-      <DateRange calendarRef={currentCalendarRef} view={view} />
+      <DateRange calendarRef={currentCalendarRef} view={view} date={date} />
 
       <Swiper
         ref={swiperRef}
@@ -189,32 +162,28 @@ export default function Home() {
           />
         </SwiperSlide>
         <SwiperSlide>
-          {loading ? (
-            <p>Загрузка...</p>
-          ) : (
-            <FullCalendar
-              ref={currentCalendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView={view}
-              events={events}
-              headerToolbar={false}
-              locale="ru"
-              firstDay={1}
-              slotMinTime="06:00:00"
-              slotMaxTime="30:00:00"
-              height="100%"
-              eventClick={(info) =>
-                alert(`${info.event.title}\n${info.event.extendedProps.startTime} - ${info.event.extendedProps.endTime}`)
-              }
-              className={styles.fullScreenCalendar}
-              navLinks={false}
-              editable={false}
-              selectable={false}
-              dayMaxEvents={2}
-              eventLimit={true}
-              allDaySlot={false}
-            />
-          )}
+          <FullCalendar
+            ref={currentCalendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView={view}
+            events={events}
+            headerToolbar={false}
+            locale="ru"
+            firstDay={1}
+            slotMinTime="06:00:00"
+            slotMaxTime="30:00:00"
+            height="100%"
+            eventClick={(info) =>
+              alert(`${info.event.title}\n${info.event.extendedProps.startTime} - ${info.event.extendedProps.endTime}`)
+            }
+            className={styles.fullScreenCalendar}
+            navLinks={false}
+            editable={false}
+            selectable={false}
+            dayMaxEvents={2}
+            eventLimit={true}
+            allDaySlot={false}
+          />
         </SwiperSlide>
         <SwiperSlide>
           <FullCalendar
@@ -238,10 +207,10 @@ export default function Home() {
           />
         </SwiperSlide>
       </Swiper>
-      
-      <BottomBar 
-        view={view} 
-        onViewChange={handleViewChange} 
+
+      <BottomBar
+        view={view}
+        onViewChange={handleViewChange}
         onTodayClick={handleTodayClick}
       />
     </main>
