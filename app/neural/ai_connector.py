@@ -14,7 +14,7 @@ class AiConnector:
         """
         pass
 
-    def send_message(self, message):
+    def send_message(self, id, message):
         """
         Метод для отправки сообщения в AI
         :param message: Сообщение для отправки
