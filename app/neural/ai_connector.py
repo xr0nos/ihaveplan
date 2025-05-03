@@ -1,6 +1,8 @@
 import requests
 from typing import Dict, List
 from datetime import datetime
+from commands.commands_engine import CommandsEngine
+import json
 
 
 class AiConnector:
@@ -26,6 +28,8 @@ class AiConnector:
         # Репозитории
         self._user_repo = user_repo
         self._task_repo = task_repo
+        # Обработка команд
+        self._commands_engine = CommandsEngine(user_repo, task_repo)
         # Дни недели
         self._days_of_week = {
             "(Monday)": "Понедельник",
@@ -106,12 +110,30 @@ class AiConnector:
         response = self._send_message(telegram_id)
         
         if not response:
-            return None
+            return "Неизвестная ошибка. Попробуйте еще раз."
         
         self._add_message(telegram_id, "assistant", response)
         # Удаляем старые сообщения, если их больше 6
         if len(self._user_histories[telegram_id]) > 6:
             self._user_histories[telegram_id] = self._user_histories[telegram_id][-6:]
 
-        # TODO: Парсинг струкруты ответа
-        return response
+        # Парсинг струкруты ответа
+        response = response.replace("```json", "")
+        response = response.replace("```", "")
+        try:
+            data = json.loads(response)
+        except json.decoder.JSONDecodeError as e:
+            print("Ошибка парсинга JSON:", e)
+            return "Неизвестная ошибка. Попробуйте еще раз."
+        
+        # Исполняем команды
+        if data.get("commands"):
+            for command in data["commands"]:
+                try:
+                    self._commands_engine.execute(telegram_id, command)
+                except ValueError as e:
+                    print(f"Ошибка выполнения команды: {e}")
+                    return "Неизвестная ошибка. Попробуйте еще раз."
+            
+        # Отвечаем пользователю
+        return data.get("answer", "Неизвестная ошибка. Попробуйте еще раз.")
