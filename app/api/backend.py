@@ -39,7 +39,7 @@ class PriorityEnum(str, Enum):
 class UserBase(BaseModel):
     name: str
     user_info: Optional[str] = None
-    tasks_info: Optional[str] = None
+    telegram_id: int
 
 
 class UserCreate(UserBase):
@@ -82,7 +82,7 @@ def create_user(user: UserCreate):
         user_id = user_repo.add_user(
             name=user.name,
             user_info=user.user_info,
-            tasks_info=user.tasks_info
+            telegram_id=user.telegram_id
         )
         return user_repo.get_user(user_id)
     except Exception as e:
@@ -95,6 +95,17 @@ def create_user(user: UserCreate):
 @app.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int):
     user = user_repo.get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return user
+
+
+@app.get("/users_tg/{telegram_id}", response_model=UserResponse)
+def read_user_by_telegram_id(telegram_id: int):
+    user = user_repo.get_user_by_telegram_id(telegram_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

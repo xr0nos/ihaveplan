@@ -67,7 +67,6 @@ class UserRepository:
         finally:
             session.close()
 
-
 class TaskRepository:
     def __init__(self, db: Database):
         self.db = db

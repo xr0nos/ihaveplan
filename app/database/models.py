@@ -14,7 +14,7 @@ class User(Base):
     name = Column(String, nullable=False)
     user_info = Column(String, nullable=True)
 
-    tasks = relationship("Task", back_populates="user")
+    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.name}')>"
