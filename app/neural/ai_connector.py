@@ -128,6 +128,7 @@ class AiConnector:
         
         # Исполняем команды
         if data.get("commands"):
+            print()
             for command in data["commands"]:
                 try:
                     self._commands_engine.execute(telegram_id, command)

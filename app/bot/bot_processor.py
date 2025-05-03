@@ -19,13 +19,6 @@ class BotProcessor:
         )
         if message:
             self._send_message(telegram_id, message)
-        # Пример вызова AI
-        # on_response = self.ai_connector.send_message({
-        #     "text": "Сделать проект по ТПР",
-        #     "telegram_id": 1,
-        # })
-        # on_response(lambda response: self._process_response(response))
-        pass
     
 
     def _send_message(self, telegram_id: int, message_text: str):
