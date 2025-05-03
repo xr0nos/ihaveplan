@@ -26,28 +26,39 @@ class AiConnector:
         # Репозитории
         self._user_repo = user_repo
         self._task_repo = task_repo
+        # Дни недели
+        self._days_of_week = {
+            "(Monday)": "Понедельник",
+            "(Tuesday)": "Вторник",
+            "(Wednesday)": "Среда",
+            "(Thursday)": "Четверг",
+            "(Friday)": "Пятница",
+            "(Saturday)": "Суббота",
+            "(Sunday)": "Воскресенье"
+        }
 
 
     def _get_user_info(self, telegram_id: int) -> str:
         """Получить информацию о пользователе для системного промпта"""
         user = self._user_repo.get_user_by_telegram_id(telegram_id)
-        res = "\nИнформация о пользователе и его задачах (уже сохранена, снова сохранять не нужно):\n"
+        res = "\n\nКалендарь пользователя на ближайшие 2 недели: (уже сохранен, снова сохранять не нужно):\n"
         tasks = self._task_repo.get_tasks_for_ai(telegram_id)
-        res += "Календарь на ближайшие 2 недели:\n"
         today = datetime.now()
+        res += f"Сегодня {today.strftime("%H:%M")} "
         for i in range(14):
             date = today.strftime("%Y-%m-%d (%A)")
+            date = date.replace(date.split()[1], self._days_of_week[date.split()[1]])
             today_tasks = [task for task in tasks if task.date == today.date()]
             if today_tasks:
                 res += f"{date}:\n"
                 for task in today_tasks:
-                    res += f"{task.title} ({task.start_time} - {task.end_time}). id: {task.id}. Заметки AI: {task.ai_notes}\n"
+                    res += f" - {task.title} ({task.start_time} - {task.end_time}). id: {task.id}. Заметки AI: {task.ai_notes}\n"
             else:
                 res += f"{date}: нет задач\n"
             today = today.replace(day=today.day + 1)
-        res += f"Имя пользователя: {user.name}\n"
-        res += f"Информация о пользователе: {user.user_info}\n"
-        res += "Конец информации. Все, что пользователь попросит далее, следует обработать.\n"
+        res += "\n!!!ОЧЕНЬ ВАЖНО: Всегда сверяй время новой задачи с информацией о пользователе ниже:\n"
+        res += f"\n\"{user.user_info}\"\n"
+        res += "\n!!!ОЧЕНЬ ВАЖНО: Добавляй задачу только на то время, когда пользователь свободен. Задачи не должны ставиться на недоступное время — даже если кажется, что «влезет»."
         
         return res
 
@@ -77,7 +88,7 @@ class AiConnector:
             "messages": [system_prompt] + self._user_histories[telegram_id]
         }
 
-        #print("SYSTEM:", prompt["messages"][0]["text"], sep="\n")
+        # print("SYSTEM:", prompt["messages"][0]["text"], sep="\n")
         try:
             response = requests.post(self._api_url, headers=self._headers, json=prompt)
             return self._parse_response(response.json())
