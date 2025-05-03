@@ -5,22 +5,33 @@ class BotProcessor:
         Инициализация класса BotProcessor
         :param ai_connector: Объект для подключения к AI
         """
-        self.ai_connector = ai_connector
+        self._ai_connector = ai_connector
         
 
-    def _call_ai(self):
+    def _call_ai(self, telegram_id: int, message_text: str):
         """
         Метод для вызова Yandex GPT
         """
+        message = self._ai_connector.make_request(
+            telegram_id, message_text
+        )
+        if message:
+            self._send_message(telegram_id, message)
         # Пример вызова AI
         # on_response = self.ai_connector.send_message({
         #     "text": "Сделать проект по ТПР",
-        #     "user_info": "",
-        #     "tasks_info": "",
-        #     "user_id": 1,
+        #     "telegram_id": 1,
         # })
         # on_response(lambda response: self._process_response(response))
         pass
+    
+
+    def _send_message(self, telegram_id: int, message_text: str):
+        """
+        Метод для отправки сообщения пользователю
+        """
+        # TODO: Должно отправляться через тг
+        print(f"{telegram_id}: {message_text}")
 
 
     def run(self):
