@@ -160,6 +160,26 @@ class TaskRepository:
         finally:
             session.close()
 
+    def get_tasks_for_ai(self, telegram_id: int) -> list[Task]:
+        """
+        Возвращает задачи с сегодняшней даты и будущих дат
+        и только те, которые не завершены
+        """
+        session = self.db.get_session()
+        try:
+            user = session.query(User).filter_by(telegram_id=telegram_id).first()
+            if not user:
+                return []
+            today = date.today()
+            tasks = session.query(Task).filter(
+                Task.user_id == user.id,
+                Task.date >= today,
+                Task.completed == False
+            ).all()
+            return tasks
+        finally:
+            session.close()
+
     def get_task(self, task_id: int) -> Optional[Task]:
         session = self.db.get_session()
         try:

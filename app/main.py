@@ -16,7 +16,8 @@ if __name__ == "__main__":
     user_repo = UserRepository(db)
     task_repo = TaskRepository(db)
 
-    ai_connector = AiConnector(api_key="AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo")
+    ai_connector = AiConnector("AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo",
+                               user_repo, task_repo)
     bot = BotProcessor(ai_connector)
 
     bot.run()

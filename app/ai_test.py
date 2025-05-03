@@ -16,9 +16,10 @@ if __name__ == "__main__":
     user_repo = UserRepository(db)
     task_repo = TaskRepository(db)
 
-    ai_connector = AiConnector(api_key="AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo")
+    ai_connector = AiConnector("AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo",
+                               user_repo, task_repo)
     bot = BotProcessor(ai_connector)
 
     bot.run()
 
-    bot._call_ai(123456789, "До пятницы мне нужно сделать работу по ТПР")
+    bot._call_ai(123456789, "Сделать домашку по ТРПП до четверга 15 мая. Займет 6 часов, разнеси на 2 дня. В четверг 15 мая она должна быть готова к утру, что-то делать времени уже не будет.")

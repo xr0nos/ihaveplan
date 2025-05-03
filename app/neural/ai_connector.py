@@ -1,28 +1,55 @@
 import requests
 from typing import Dict, List
+from datetime import datetime
 
 
 class AiConnector:
-    def __init__(self, api_key):
+    def __init__(self, api_key, user_repo, task_repo):
         # Запросы к нейронке
         self._api_url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
             "Authorization": f"Api-Key {api_key}"
         }
-        self._model_uri = "gpt://b1gkd7sr0i2ipteg0eqg/yandexgpt-lite"
+        self._model_uri = "gpt://b1gkd7sr0i2ipteg0eqg/llama"
         self._default_options = {
             "stream": False,
-            "temperature": 0.6,
+            "temperature": 0.5,
             "maxTokens": "2000"
         }
         # Истории запросов пользователей
         self._user_histories: Dict[int, Dict[str, str]] = {}
         self._system_prompt = {
             "role": "system", 
-            "text": "Создавай раписание со временем, "
-                    "когда какое действие необходимо сделать пользователю"
+            "text": open("neural/system_prompt.txt", "r").read()
         }
+        # Репозитории
+        self._user_repo = user_repo
+        self._task_repo = task_repo
+
+
+    def _get_user_info(self, telegram_id: int) -> str:
+        """Получить информацию о пользователе для системного промпта"""
+        user = self._user_repo.get_user_by_telegram_id(telegram_id)
+        res = "\nИнформация о пользователе и его задачах (уже сохранена, снова сохранять не нужно):\n"
+        tasks = self._task_repo.get_tasks_for_ai(telegram_id)
+        res += "Календарь на ближайшие 2 недели:\n"
+        today = datetime.now()
+        for i in range(14):
+            date = today.strftime("%Y-%m-%d (%A)")
+            today_tasks = [task for task in tasks if task.date == today.date()]
+            if today_tasks:
+                res += f"{date}:\n"
+                for task in today_tasks:
+                    res += f"{task.title} ({task.start_time} - {task.end_time}). id: {task.id}. Заметки AI: {task.ai_notes}\n"
+            else:
+                res += f"{date}: нет задач\n"
+            today = today.replace(day=today.day + 1)
+        res += f"Имя пользователя: {user.name}\n"
+        res += f"Информация о пользователе: {user.user_info}\n"
+        res += "Конец информации. Все, что пользователь попросит далее, следует обработать.\n"
+        
+        return res
 
 
     def _add_message(self, telegram_id: int, role: str, text: str) -> None:
@@ -40,16 +67,17 @@ class AiConnector:
             return None
 
 
-    def _send_message(self, messages):
+    def _send_message(self, telegram_id):
         """Метод для отправки сообщения в AI"""
+        system_prompt = self._system_prompt.copy()
+        system_prompt["text"] += self._get_user_info(telegram_id)
         prompt = {
             "modelUri": self._model_uri,
             "completionOptions": self._default_options,
-            "messages": [self._system_prompt] + messages
+            "messages": [system_prompt] + self._user_histories[telegram_id]
         }
 
-        print("PROMPT: ", prompt)
-
+        #print("SYSTEM:", prompt["messages"][0]["text"], sep="\n")
         try:
             response = requests.post(self._api_url, headers=self._headers, json=prompt)
             return self._parse_response(response.json())
@@ -59,15 +87,12 @@ class AiConnector:
         
 
     def make_request(self, telegram_id: int, message_text: str):
-        print("MAKE REQUEST")
         """Метод для создания запроса к AI"""
         if telegram_id not in self._user_histories:
             self._user_histories[telegram_id] = []
 
         self._add_message(telegram_id, "user", message_text)
-        response = self._send_message(self._user_histories[telegram_id])
-
-        print(f"RESPONSE: {response}")
+        response = self._send_message(telegram_id)
         
         if not response:
             return None
