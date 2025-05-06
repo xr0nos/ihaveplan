@@ -3,6 +3,8 @@
 import styles from './BottomBar.module.css'
 
 export default function BottomBar({ view, onViewChange, onTodayClick }) {
+  const today = new Date().getDate();
+
   return (
     <div className={styles.bottomBar}>
       <div className={styles.viewToggle}>
@@ -26,7 +28,7 @@ export default function BottomBar({ view, onViewChange, onTodayClick }) {
           </button>
         </div>
         <button onClick={onTodayClick} className={styles.todayButton}>
-          Сегодня
+          {today}
         </button>
     </div>
   )

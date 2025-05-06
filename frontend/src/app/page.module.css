@@ -200,7 +200,3 @@
     min-height: 40px;
   }
 }
-
-:global(.fc-event-time), :global(.fc-event-title) {
-  color: black;
-}

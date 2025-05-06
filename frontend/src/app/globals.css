@@ -1,6 +1,13 @@
 :root {
   --background: #ffffff;
   --foreground: #333333;
+  
+  /* Calendar colors */
+  --calendar-event-bg: black;
+  --calendar-event-text: white;
+  --calendar-event-time: rgb(186, 186, 186);
+  --calendar-today-bg: #f5f7fa;
+  --calendar-neutral-bg: white;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,4 +46,98 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+/* Календарь */
+
+.fc-dayGridMonth-view .fc-event {
+  background: var(--calendar-event-bg);
+}
+
+.fc-dayGridMonth-view .fc-daygrid-event-dot {
+  display: none;
+}
+
+.fc-dayGridMonth-view .fc-event-time {
+  display: none;
+}
+
+.fc-timeGridWeek-view .fc-event-time {
+  display: none;
+}
+
+.fc-timeGridWeek-view .fc-event-main {
+  background: var(--calendar-event-bg);
+}
+
+.fc-timeGridWeek-view .fc-event {
+  /* border: 2px solid black; */
+  border-radius: 5px;
+}
+
+.fc-timeGridWeek-view .fc-scrollgrid-sync-inner {
+  font-weight: normal;
+}
+
+.fc-timeGridDay-view .fc-event {
+  background: var(--calendar-event-bg);
+  border-radius: 5px;
+}
+
+.fc-timeGridDay-view .fc-event {
+  padding: 5px;
+}
+
+.fc-timeGridDay-view .fc-event-time {
+  color: var(--calendar-event-time);
+  text-align: right;
+  right: 5px;
+  position: absolute;
+}
+
+.fc-timeGridDay-view .fc-event-title {
+  color: var(--calendar-event-text);
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.fc-timeGridWeek-view .fc-event-title {
+  color: var(--calendar-event-text);
+  font-weight: 600;
+}
+
+.fc-dayGridMonth-view .fc-event-title {
+  padding-left: 2px;
+  font-weight: normal;
+  color: var(--calendar-event-text);
+}
+
+.fc-daygrid-day-top {
+  justify-content: center;
+}
+
+.fc-popover-body .fc-event {
+  background: var(--calendar-event-bg);
+  border-radius: 8px;
+}
+
+.fc-popover-body .fc-event-title {
+  color: var(--calendar-event-text);
+}
+
+.fc-popover-header {
+  color: black;
+}
+
+.fe-popover-body .fc-daygrid-event-harness  {
+  display: none;
+}
+
+.fc-popover {
+  color: var(--calendar-event-text);
+}
+
+:root {
+  --fc-today-bg-color: var(--calendar-today-bg);
+  --fc-neutral-bg-color: var(--calendar-neutral-bg);
 }

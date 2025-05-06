@@ -1,7 +1,8 @@
 .dateRange {
     padding: 10px;
-    text-align: center;
-    font-size: 1em;
+    text-align: left;
+    font-size: 1.5em;
+    font-weight: 600;
     color: #333333;
     background: #ffffff;
     border-bottom: 1px solid #e0e6ed;
@@ -9,7 +10,6 @@
 
 @media (max-width: 768px) {
     .dateRange {
-        font-size: 0.9em;
         padding: 8px;
     }
 }
