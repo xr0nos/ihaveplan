@@ -4,17 +4,11 @@
   
   /* Calendar colors */
   --calendar-event-bg: black;
+  --calendar-event-bg-completed: rgb(88, 87, 87);
   --calendar-event-text: white;
   --calendar-event-time: rgb(186, 186, 186);
   --calendar-today-bg: #f5f7fa;
   --calendar-neutral-bg: white;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 html,
@@ -50,11 +44,15 @@ a {
 
 /* Календарь */
 
-.fc-dayGridMonth-view .fc-event {
+.completed-false {
   background: var(--calendar-event-bg);
 }
 
-.fc-dayGridMonth-view .fc-daygrid-event-dot {
+.completed-true {
+  background: var(--calendar-event-bg-completed);
+}
+
+.fc-daygrid-event-dot {
   display: none;
 }
 
@@ -66,12 +64,8 @@ a {
   display: none;
 }
 
-.fc-timeGridWeek-view .fc-event-main {
-  background: var(--calendar-event-bg);
-}
-
-.fc-timeGridWeek-view .fc-event {
-  /* border: 2px solid black; */
+.fc-event {
+  border: none;
   border-radius: 5px;
 }
 
@@ -80,7 +74,6 @@ a {
 }
 
 .fc-timeGridDay-view .fc-event {
-  background: var(--calendar-event-bg);
   border-radius: 5px;
 }
 
@@ -117,8 +110,8 @@ a {
 }
 
 .fc-popover-body .fc-event {
-  background: var(--calendar-event-bg);
   border-radius: 8px;
+  padding-left: 4px;
 }
 
 .fc-popover-body .fc-event-title {

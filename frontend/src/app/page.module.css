@@ -154,18 +154,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.high {
-  background: #ff6b6b;
-}
-
-.medium {
-  background: #ffd166;
-}
-
-.low {
-  background: #4ecdc4;
-}
-
 @media (max-width: 768px) {
   .dateRange {
     font-size: 0.9em;

@@ -12,12 +12,15 @@ import styles from './page.module.css'
 import TelegramWebApp from '../components/TelegramWebApp/TelegramWebApp'
 import DateRange from '../components/DateRange/DateRange'
 import BottomBar from '../components/BottomBar/BottomBar'
+import TaskModal from '../components/TaskModal/TaskModal'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const [view, setView] = useState('timeGridDay');
   const [userId, setUserId] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const currentCalendarRef = useRef(null);
   const prevCalendarRef = useRef(null);
   const nextCalendarRef = useRef(null);
@@ -107,12 +110,53 @@ export default function Home() {
     }
   };
 
+  const handleTaskClick = (info) => {
+    console.log('Task clicked:', info.event.id, tasks);
+    const task = tasks.find(t => t.id === +info.event.id);
+    if (task) {
+      setSelectedTask(task);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleToggleComplete = async () => {
+    if (!selectedTask) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/tasks/${selectedTask.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          completed: !selectedTask.completed
+        }),
+      });
+
+      if (!response.ok) throw new Error('Network error');
+
+      // Обновляем состояние задачи в списке
+      const updatedTasks = tasks.map(task => 
+        task.id === selectedTask.id 
+          ? { ...task, completed: !task.completed }
+          : task
+      );
+      setTasks(updatedTasks);
+      
+      // Обновляем состояние выбранной задачи
+      const updatedTask = updatedTasks.find(task => task.id === selectedTask.id);
+      setSelectedTask(updatedTask);
+    } catch (err) {
+      console.error('Update error:', err);
+    }
+  };
+
   const events = tasks.map((task) => ({
     id: task.id,
     title: task.title,
     start: `${task.date}T${task.startTime}:00`,
     end: `${task.date}T${task.endTime}:00`,
-    className: styles[task.priority],
+    className: `completed-${task.completed}`,
     extendedProps: {
       priority: task.priority,
       startTime: task.startTime,
@@ -173,9 +217,7 @@ export default function Home() {
             slotMinTime="06:00:00"
             slotMaxTime="30:00:00"
             height="100%"
-            eventClick={(info) =>
-              alert(`${info.event.title}\n${info.event.extendedProps.startTime} - ${info.event.extendedProps.endTime}`)
-            }
+            eventClick={handleTaskClick}
             className={styles.fullScreenCalendar}
             navLinks={false}
             editable={false}
@@ -213,6 +255,15 @@ export default function Home() {
         onViewChange={handleViewChange}
         onTodayClick={handleTodayClick}
       />
+
+      {selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onToggleComplete={handleToggleComplete}
+        />
+      )}
     </main>
   );
 }
