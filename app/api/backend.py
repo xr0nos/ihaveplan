@@ -67,6 +67,16 @@ class TaskCreate(TaskBase):
     user_id: int
 
 
+class TaskUpdate(TaskBase):
+    title: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    priority: Optional[PriorityEnum] = None
+    completed: Optional[bool] = None
+    date: Optional[date] = None
+    ai_notes: Optional[str] = None
+
+
 class TaskResponse(TaskBase):
     id: int
     user_id: int
@@ -180,26 +190,21 @@ def read_user_tasks(telegram_id: int):
     return task_repo.get_tasks_by_user(user.id)
 
 
-@app.put("/tasks/{task_id}", response_model=TaskResponse)
-def update_task(task_id: int, task: TaskBase):
+@app.put("/tasks/{task_id}")
+def update_task(task_id: int, task: TaskUpdate):
+    existing_task = task_repo.get_task(task_id)
+    if not existing_task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
     try:
         updated_task = task_repo.update_task(
             task_id=task_id,
-            title=task.title,
-            start_time=task.start_time,
-            end_time=task.end_time,
-            priority=task.priority.value,
-            completed=task.completed,
-            date=task.date,
-            ai_notes=task.ai_notes
+            **task.model_dump(exclude_unset=True)
         )
-        if not updated_task:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
         return updated_task
-    except ValueError as e:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
