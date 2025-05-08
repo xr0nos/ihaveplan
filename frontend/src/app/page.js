@@ -1,18 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import 'swiper/css'
 import styles from './page.module.css'
 
 import TelegramWebApp from '../components/TelegramWebApp/TelegramWebApp'
 import DateRange from '../components/DateRange/DateRange'
 import BottomBar from '../components/BottomBar/BottomBar'
 import TaskModal from '../components/TaskModal/TaskModal'
+import CalendarSwiper from '../components/CalendarSwiper/CalendarSwiper'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
@@ -25,6 +20,11 @@ export default function Home() {
   const prevCalendarRef = useRef(null);
   const nextCalendarRef = useRef(null);
   const swiperRef = useRef(null);
+
+  // Инициализация календарей с разными датами
+  useEffect(() => {
+    updateCalendars(view);
+  }, []);
 
   // Получение задач из API
   useEffect(() => {
@@ -57,7 +57,6 @@ export default function Home() {
     updateCalendars(newView);
   };
 
-  // Принимаем вид как параметр, чтобы использовать актуальное значение
   const updateCalendars = (currentView) => {
     if (currentCalendarRef.current && prevCalendarRef.current && nextCalendarRef.current) {
       const currentApi = currentCalendarRef.current.getApi();
@@ -85,7 +84,7 @@ export default function Home() {
 
       prevApi.gotoDate(prevDate);
       nextApi.gotoDate(nextDate);
-      currentApi.gotoDate(currentDate); // Убеждаемся, что текущий календарь остаётся на месте
+      currentApi.gotoDate(currentDate);
     }
   };
 
@@ -94,24 +93,23 @@ export default function Home() {
       currentCalendarRef.current.getApi().today();
       setDate(new Date());
       updateCalendars(view);
-      swiperRef.current.swiper.slideTo(1); // Возвращаем в центр только при "Сегодня"
+      swiperRef.current.swiper.slideTo(1);
     }
   };
 
   const handleSlideChange = (swiper) => {
-    const direction = swiper.activeIndex - 1; // -1 (prev), 0 (current), 1 (next)
+    const direction = swiper.activeIndex - 1;
     if (direction !== 0 && currentCalendarRef.current) {
       const api = currentCalendarRef.current.getApi();
       if (direction > 0) api.next();
       else api.prev();
       setDate(api.getDate());
       updateCalendars(view);
-      swiper.slideTo(1, 0); // Возвращаем в центр без анимации
+      swiper.slideTo(1, 0);
     }
   };
 
   const handleTaskClick = (info) => {
-    console.log('Task clicked:', info.event.id, tasks);
     const task = tasks.find(t => t.id === +info.event.id);
     if (task) {
       setSelectedTask(task);
@@ -135,7 +133,6 @@ export default function Home() {
 
       if (!response.ok) throw new Error('Network error');
 
-      // Обновляем состояние задачи в списке
       const updatedTasks = tasks.map(task => 
         task.id === selectedTask.id 
           ? { ...task, completed: !task.completed }
@@ -143,7 +140,6 @@ export default function Home() {
       );
       setTasks(updatedTasks);
       
-      // Обновляем состояние выбранной задачи
       const updatedTask = updatedTasks.find(task => task.id === selectedTask.id);
       setSelectedTask(updatedTask);
     } catch (err) {
@@ -167,88 +163,19 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-
       <TelegramWebApp onUserIdDetected={setUserId} />
       <DateRange calendarRef={currentCalendarRef} view={view} date={date} />
 
-      <Swiper
-        ref={swiperRef}
-        slidesPerView={1}
-        initialSlide={1}
-        speed={180}
-        threshold={0}
-        onSlideChangeTransitionEnd={handleSlideChange}
-        followFinger={true}
-        resistanceRatio={0.85}
-        simulateTouch={true}
-        touchRatio={1}
-        className={styles.swiper}
-      >
-        <SwiperSlide>
-          <FullCalendar
-            ref={prevCalendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={view}
-            events={events}
-            headerToolbar={false}
-            locale="ru"
-            firstDay={1}
-            slotMinTime="06:00:00"
-            slotMaxTime="30:00:00"
-            height="100%"
-            className={styles.fullScreenCalendar}
-            navLinks={false}
-            editable={false}
-            selectable={false}
-            dayMaxEvents={2}
-            eventLimit={true}
-            allDaySlot={false}
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <FullCalendar
-            ref={currentCalendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={view}
-            events={events}
-            headerToolbar={false}
-            locale="ru"
-            firstDay={1}
-            slotMinTime="06:00:00"
-            slotMaxTime="30:00:00"
-            height="100%"
-            eventClick={handleTaskClick}
-            className={styles.fullScreenCalendar}
-            navLinks={false}
-            editable={false}
-            selectable={false}
-            dayMaxEvents={2}
-            eventLimit={true}
-            allDaySlot={false}
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <FullCalendar
-            ref={nextCalendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={view}
-            events={events}
-            headerToolbar={false}
-            locale="ru"
-            firstDay={1}
-            slotMinTime="06:00:00"
-            slotMaxTime="30:00:00"
-            height="100%"
-            className={styles.fullScreenCalendar}
-            navLinks={false}
-            editable={false}
-            selectable={false}
-            dayMaxEvents={2}
-            eventLimit={true}
-            allDaySlot={false}
-          />
-        </SwiperSlide>
-      </Swiper>
+      <CalendarSwiper
+        swiperRef={swiperRef}
+        currentCalendarRef={currentCalendarRef}
+        prevCalendarRef={prevCalendarRef}
+        nextCalendarRef={nextCalendarRef}
+        view={view}
+        events={events}
+        onSlideChange={handleSlideChange}
+        onTaskClick={handleTaskClick}
+      />
 
       <BottomBar
         view={view}

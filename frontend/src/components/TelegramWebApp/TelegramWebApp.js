@@ -13,8 +13,8 @@ export default function TelegramWebApp({ onUserIdDetected }) {
       if (tg) {
         tg.ready()
         tg.expand()
-        tg.setHeaderColor('#f5f7fa')
-        tg.setBackgroundColor('#f5f7fa')
+        tg.setHeaderColor('#ffffff')
+        tg.setBackgroundColor('#ffffff')
 
         const userId = tg.initDataUnsafe?.user?.id
         if (userId) {
