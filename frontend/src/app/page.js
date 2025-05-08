@@ -22,9 +22,12 @@ export default function Home() {
   const nextCalendarRef = useRef(null);
   const swiperRef = useRef(null);
 
-  // Инициализация календарей с разными датами
+  // Загрузка сохраненного вида при монтировании компонента
   useEffect(() => {
-    updateCalendars(view);
+    const savedView = localStorage.getItem('calendarView');
+    if (savedView) {
+      handleViewChange(savedView);
+    }
   }, []);
 
   // Получение задач из API
@@ -39,6 +42,7 @@ export default function Home() {
 
   const handleViewChange = (newView) => {
     setView(newView);
+    localStorage.setItem('calendarView', newView);
     if (currentCalendarRef.current) currentCalendarRef.current.getApi().changeView(newView);
     if (prevCalendarRef.current) prevCalendarRef.current.getApi().changeView(newView);
     if (nextCalendarRef.current) nextCalendarRef.current.getApi().changeView(newView);
