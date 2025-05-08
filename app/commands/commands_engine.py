@@ -1,4 +1,5 @@
 from datetime import datetime
+from database.repository import UserRepository, TaskRepository
 
 
 class CommandsEngine:
@@ -6,11 +7,10 @@ class CommandsEngine:
     Выполнение команд от ИИ.
     """
 
-    def __init__(self, user_repo, task_repo):
+    def __init__(self, user_repo: UserRepository, task_repo: TaskRepository):
         self._user_repo = user_repo
         self._task_repo = task_repo
 
-    
     def _add_task(self, telegram_id, command: dict):
         # Валидация параметров
         required_params = {
@@ -27,8 +27,8 @@ class CommandsEngine:
                 raise ValueError(f"Invalid type for parameter: {param}. Expected {param_type.__name__}.")
         
         # Получаем ID пользователя
-        user_id = self._user_repo.get_user_by_telegram_id(telegram_id).id
-        if not user_id:
+        user = self._user_repo.get_user_by_telegram_id(telegram_id)
+        if not user:
             raise ValueError(f"User with telegram ID {telegram_id} not found.")
         
         # Добавляем задачу
@@ -36,8 +36,9 @@ class CommandsEngine:
             date_obj = datetime.strptime(command["date"], "%Y-%m-%d")
         except ValueError:
             raise ValueError("Invalid date format. Expected YYYY-MM-DD.")
-        self._task_repo.add_task(
-            user_id=user_id,
+
+        task = self._task_repo.add_task(
+            user_id=user.id,
             title=command["title"],
             start_time=command["start_time"],
             end_time=command["end_time"],
@@ -82,9 +83,8 @@ class CommandsEngine:
         # Обновляем информацию о пользователе
         self._user_repo.update_user(user.id, user_info=command["user_info"])
 
-
     def execute(self, telegram_id, command: dict):
-        print(f"Executing command: {command["command"]} for user: {telegram_id}")
+        print(f"Executing command: {command['command']} for user: {telegram_id}")
         match command["command"]:
             case "add_task":
                 self._add_task(telegram_id, command["params"])

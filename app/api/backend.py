@@ -1,15 +1,22 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Dict
 from enum import Enum
 
 from database.database import Database
 from database.models import Task
 from database.repository import UserRepository,TaskRepository
+from .websocket_manager import WebSocketManager
 
 app = FastAPI()
+
+# Инициализация базы данных и репозиториев
+db = Database()
+user_repo = UserRepository(db)
+task_repo = TaskRepository(db)
+websocket_manager = WebSocketManager()
 
 origins = [
     "http://localhost:3000",
@@ -22,12 +29,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Инициализация базы данных и репозиториев
-db = Database()
-user_repo = UserRepository(db)
-task_repo = TaskRepository(db)
-
 
 # Pydantic модели для запросов и ответов
 class PriorityEnum(str, Enum):
@@ -85,9 +86,41 @@ class TaskResponse(TaskBase):
         orm_mode = True
 
 
-# Эндпоинты для пользователей
+@app.websocket("/ws/{telegram_id}")
+async def websocket_endpoint(websocket: WebSocket, telegram_id: int):
+    await websocket_manager.connect(websocket, telegram_id)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(websocket, telegram_id)
+
+@app.post("/tasks/", response_model=TaskResponse)
+async def create_task(task: TaskCreate):
+    try:
+        task_id = task_repo.add_task(
+            user_id=task.user_id,
+            title=task.title,
+            date=task.date,
+            start_time=task.start_time,
+            end_time=task.end_time,
+            priority=task.priority,
+            completed=task.completed,
+            ai_notes=task.ai_notes
+        )
+        new_task = task_repo.get_task(task_id)
+        user = user_repo.get_user(task.user_id)
+        await websocket_manager.notify_task_update(user.telegram_id)
+        return new_task
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+# Модифицируем существующие эндпоинты для отправки уведомлений
 @app.post("/users/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate):
+async def create_user(user: UserCreate):
     try:
         user_id = user_repo.add_user(
             name=user.name,
@@ -100,7 +133,6 @@ def create_user(user: UserCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int):
@@ -125,39 +157,6 @@ def read_user_by_telegram_id(telegram_id: int):
 
 
 # Эндпоинты для задач
-@app.post("/tasks/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task: TaskCreate):
-    # Проверяем существует ли пользователь
-    if not user_repo.get_user(task.user_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    try:
-        task_id = task_repo.add_task(
-            user_id=task.user_id,
-            title=task.title,
-            start_time=task.start_time,
-            end_time=task.end_time,
-            priority=task.priority.value,
-            completed=task.completed,
-            date=task.date,
-            ai_notes=task.ai_notes
-        )
-        return task_repo.get_task(task_id)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def read_task(task_id: int):
     task = task_repo.get_task(task_id)
@@ -222,3 +221,9 @@ def delete_task(task_id: int):
     task_repo.delete_task(task_id)
     return None
 
+
+@app.post("/notify_task_update/{telegram_id}")
+async def notify_task_update(telegram_id: int):
+    """Эндпоинт для уведомления о новых задачах"""
+    await websocket_manager.notify_task_update(telegram_id)
+    return {"status": "ok"}

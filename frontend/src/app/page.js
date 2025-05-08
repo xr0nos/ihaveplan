@@ -9,6 +9,7 @@ import BottomBar from '../components/BottomBar/BottomBar'
 import TaskModal from '../components/TaskModal/TaskModal'
 import CalendarSwiper from '../components/CalendarSwiper/CalendarSwiper'
 import { fetchUserTasks, updateTaskCompletion } from '../tools/tasksApi'
+import { useWebSocket } from '../tools/useWebSocket'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
@@ -39,6 +40,11 @@ export default function Home() {
       })
       .catch((err) => console.error('Fetch error:', err));
   }, [userId]);
+
+  // WebSocket для обновления задач в реальном времени
+  useWebSocket(userId, (newTasks) => {
+    setTasks(newTasks);
+  });
 
   const handleViewChange = (newView) => {
     setView(newView);

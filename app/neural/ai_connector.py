@@ -2,6 +2,7 @@ import requests
 from typing import Dict, List
 from datetime import datetime
 from commands.commands_engine import CommandsEngine
+from api.websocket_manager import WebSocketManager
 import json
 
 
@@ -30,6 +31,8 @@ class AiConnector:
         self._task_repo = task_repo
         # Обработка команд
         self._commands_engine = CommandsEngine(user_repo, task_repo)
+        # Менеджер сокетов
+        self._websocket_manager = WebSocketManager()
         # Дни недели
         self._days_of_week = {
             "(Monday)": "Понедельник",
@@ -101,7 +104,7 @@ class AiConnector:
             return None
         
 
-    def make_request(self, telegram_id: int, message_text: str):
+    async def make_request(self, telegram_id: int, message_text: str):
         """Метод для создания запроса к AI"""
         if telegram_id not in self._user_histories:
             self._user_histories[telegram_id] = []
@@ -135,6 +138,9 @@ class AiConnector:
                 except ValueError as e:
                     print(f"Ошибка выполнения команды: {e}")
                     return "Неизвестная ошибка. Попробуйте еще раз."
+            
+            # Отправляем уведомление через WebSocket
+            await self._websocket_manager.notify_task_update(telegram_id)
             
         # Отвечаем пользователю
         return data.get("answer", "Неизвестная ошибка. Попробуйте еще раз.")

@@ -8,13 +8,12 @@ class BotProcessor:
         # ВАЖНО: при добавлении информации о пользователе в её начало вставить следующий текст:
         # Меня зовут {name}. Запомни моё свободное время и никогда не добавляй задачи на часы, когда я занят. 
         self._ai_connector = ai_connector
-        
 
-    def _call_ai(self, telegram_id: int, message_text: str):
+    async def _call_ai(self, telegram_id: int, message_text: str):
         """
         Метод для вызова Yandex GPT
         """
-        message = self._ai_connector.make_request(
+        message = await self._ai_connector.make_request(
             telegram_id, message_text
         )
         if message:
