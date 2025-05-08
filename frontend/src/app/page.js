@@ -8,6 +8,7 @@ import DateRange from '../components/DateRange/DateRange'
 import BottomBar from '../components/BottomBar/BottomBar'
 import TaskModal from '../components/TaskModal/TaskModal'
 import CalendarSwiper from '../components/CalendarSwiper/CalendarSwiper'
+import { fetchUserTasks, updateTaskCompletion } from '../tools/tasksApi'
 
 export default function Home() {
   const [date, setDate] = useState(new Date());
@@ -29,21 +30,8 @@ export default function Home() {
   // Получение задач из API
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:8000/users_tg/${userId}/tasks/`)
-      .then((response) => {
-        if (!response.ok) throw new Error('Network error');
-        return response.json();
-      })
-      .then((data) => {
-        const formattedTasks = data.map((task) => ({
-          id: task.id,
-          title: task.title,
-          startTime: task.start_time,
-          endTime: task.end_time,
-          priority: task.priority,
-          completed: task.completed,
-          date: task.date,
-        }));
+    fetchUserTasks(userId)
+      .then((formattedTasks) => {
         setTasks(formattedTasks);
       })
       .catch((err) => console.error('Fetch error:', err));
@@ -121,18 +109,8 @@ export default function Home() {
     if (!selectedTask) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/tasks/${selectedTask.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          completed: !selectedTask.completed
-        }),
-      });
-
-      if (!response.ok) throw new Error('Network error');
-
+      await updateTaskCompletion(selectedTask.id, !selectedTask.completed);
+      
       const updatedTasks = tasks.map(task => 
         task.id === selectedTask.id 
           ? { ...task, completed: !task.completed }
