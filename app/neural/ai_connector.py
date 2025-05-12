@@ -51,7 +51,7 @@ class AiConnector:
         res = "\n\nКалендарь пользователя на ближайшие 2 недели: (уже сохранен, снова сохранять не нужно):\n"
         tasks = self._task_repo.get_tasks_for_ai(telegram_id)
         today = datetime.now()
-        res += f"Сегодня {today.strftime("%H:%M")} "
+        res += f'Сегодня {today.strftime("%H:%M")} '
         for i in range(14):
             date = today.strftime("%Y-%m-%d (%A)")
             date = date.replace(date.split()[1], self._days_of_week[date.split()[1]])

@@ -9,5 +9,30 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend_network
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:~j5jlBd|B%-V@postgres:5432/ihaveplan
+    volumes:
+      - ./app/.env:/app/.env
+    depends_on:
+      - postgres
+    networks:
+      - backend_network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
 volumes:
   pgdata:
+
+networks:
+  backend_network:
+    driver: bridge

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { fetchUserTasks } from './tasksApi';
 
+const WS_BASE_URL = 'wss://ihaveplan.andaran.fun/api';
+
 export const useWebSocket = (userId, onTasksUpdate) => {
   const ws = useRef(null);
   const onTasksUpdateRef = useRef(onTasksUpdate);
@@ -26,7 +28,7 @@ export const useWebSocket = (userId, onTasksUpdate) => {
     if (!userId) return;
 
     // Создаем WebSocket соединение
-    ws.current = new WebSocket(`ws://localhost:8000/ws/${userId}`);
+    ws.current = new WebSocket(`${WS_BASE_URL}/ws/${userId}`);
 
     // Обработчики событий
     ws.current.onopen = () => {
