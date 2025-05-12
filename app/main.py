@@ -10,7 +10,6 @@ import uvicorn
 import threading
 
 if __name__ == "__main__":
-
     # База данных
     db = Database(dotenv_path="../.env")
     user_repo = UserRepository(db)
@@ -20,8 +19,15 @@ if __name__ == "__main__":
                                user_repo, task_repo)
     bot = BotProcessor(ai_connector)
 
-    bot.run()
-
     def run_api():
         uvicorn.run(api.app, host="0.0.0.0", port=8000)
-    threading.Thread(target=run_api).start()
+
+    # Запускаем API в потоке-демоне
+    api_thread = threading.Thread(target=run_api, daemon=True)
+    api_thread.start()
+
+    # Запускаем бота в основном потоке
+    try:
+        bot.run()
+    except KeyboardInterrupt:
+        print("Завершение работы...")
