@@ -17,7 +17,8 @@ source venv/bin/activate
 
 3. Установить зависимости
 ```bash
-find . -name "requirements.txt" -exec pip install -r {} \;
+cd app
+pip install -r requirements.txt
 ```
 
 4. Установить базу данных

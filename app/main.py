@@ -4,6 +4,8 @@ from neural.ai_connector import AiConnector
 from database.database import Database
 from database.repository import UserRepository, TaskRepository
 from datetime import date
+from dotenv import load_dotenv
+import os
 
 import api.backend as api
 import uvicorn
@@ -11,12 +13,13 @@ import threading
 
 if __name__ == "__main__":
     # База данных
-    db = Database(dotenv_path="../.env")
+    db = Database()
     user_repo = UserRepository(db)
     task_repo = TaskRepository(db)
 
-    ai_connector = AiConnector("AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo",
-                               user_repo, task_repo)
+    load_dotenv()
+    api_key = os.getenv('GPT_API')
+    ai_connector = AiConnector(api_key, user_repo, task_repo)
     bot = BotProcessor(ai_connector)
 
     def run_api():

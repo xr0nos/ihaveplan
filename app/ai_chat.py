@@ -10,7 +10,7 @@ import api.backend as api
 TELEGRAM_ID = 123456789
 
 # База данных
-db = Database(dotenv_path="../.env")
+db = Database()
 user_repo = UserRepository(db)
 task_repo = TaskRepository(db)
 

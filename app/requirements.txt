@@ -1,0 +1,16 @@
+# Bot
+aiogram
+
+# API
+fastapi
+pydantic
+uvicorn
+websockets
+
+# Database
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+# Neural
+requests 
