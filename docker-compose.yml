@@ -18,8 +18,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:~j5jlBd|B%-V@postgres:5432/ihaveplan
     volumes:
       - ./app/.env:/app/.env
     depends_on:
