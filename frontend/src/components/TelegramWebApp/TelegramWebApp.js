@@ -21,7 +21,7 @@ export default function TelegramWebApp({ onUserIdDetected }) {
           onUserIdDetected(userId)
         } else {
           console.warn('User ID not found in initDataUnsafe')
-          onUserIdDetected(123456789) // Degugg
+          onUserIdDetected(574835233) // Debug
         }
       } else {
         console.error('Telegram Web App SDK not loaded')

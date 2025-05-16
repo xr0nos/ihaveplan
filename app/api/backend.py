@@ -4,11 +4,24 @@ from pydantic import BaseModel
 from datetime import date
 from typing import List, Optional, Dict
 from enum import Enum
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from database.database import Database
 from database.models import Task
 from database.repository import UserRepository,TaskRepository
 from .websocket_manager import WebSocketManager
+
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if response.status_code == 307 and 'location' in response.headers:
+            location = response.headers['location']
+            parts = location.split('/')
+            location = "https://ihaveplan.andaran.fun/api/" + "/".join(parts[3:])
+            response.headers['location'] = location
+        return response
 
 app = FastAPI()
 
@@ -20,7 +33,11 @@ websocket_manager = WebSocketManager()
 
 origins = [
     "http://localhost:3000",
+    "https://ihaveplan.andaran.fun",
 ]
+
+# Добавляем middleware для обработки HTTPS
+app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
