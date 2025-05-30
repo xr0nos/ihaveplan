@@ -1,6 +1,6 @@
 import requests
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from commands.commands_engine import CommandsEngine
 from api.websocket_manager import WebSocketManager
 import json
@@ -62,7 +62,7 @@ class AiConnector:
                     res += f" - {task.title} ({task.start_time} - {task.end_time}). id: {task.id}. Заметки AI: {task.ai_notes}\n"
             else:
                 res += f"{date}: нет задач\n"
-            today = today.replace(day=today.day + 1)
+            today = today + timedelta(days=1)
         res += "\n!!!ОЧЕНЬ ВАЖНО: Всегда сверяй время новой задачи с информацией о пользователе ниже:\n"
         res += f"\n\"{user.user_info}\"\n"
         res += "\n!!!ОЧЕНЬ ВАЖНО: Добавляй задачу только на то время, когда пользователь свободен. Задачи не должны ставиться на недоступное время — даже если кажется, что «влезет»."
