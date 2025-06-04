@@ -7,8 +7,40 @@ import json
 
 
 class AiConnector:
+    """Класс для взаимодействия с нейросетевым API и управления пользовательскими запросами.
+
+    Отвечает за:
+    - Отправку запросов к Yandex GPT API
+    - Ведение истории диалогов пользователей
+    - Обработку информации о пользователях и их задачах
+    - Выполнение команд на основе ответов ИИ
+    - Управление WebSocket-уведомлениями
+    """
+
     def __init__(self, api_key, user_repo, task_repo):
-        # Запросы к нейронке
+        """
+        Инициализирует подключение к AI-сервису и настраивает необходимые компоненты.
+
+        Аргументы:
+            api_key (str): API-ключ для доступа к Yandex GPT API
+            user_repo: Репозиторий для работы с пользователями (должен реализовывать интерфейс UserRepository)
+            task_repo: Репозиторий для работы с задачами (должен реализовывать интерфейс TaskRepository)
+
+        Инициализирует:
+            - Параметры подключения к Yandex GPT API:
+                * URL API (_api_url)
+                * HTTP-заголовки (_headers)
+                * URI модели (_model_uri)
+                * Параметры запроса по умолчанию (_default_options)
+
+            - Системные компоненты:
+                * История диалогов пользователей (_user_histories)
+                * Системный промпт (_system_prompt) - загружается из файла neural/system_prompt.txt
+                * Движок команд (_commands_engine)
+                * Менеджер WebSocket-соединений (_websocket_manager)
+                * Словарь соответствия дней недели (_days_of_week)
+
+        """
         self._api_url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
@@ -46,7 +78,23 @@ class AiConnector:
 
 
     def _get_user_info(self, telegram_id: int) -> str:
-        """Получить информацию о пользователе для системного промпта"""
+        """
+        Формирует подробную информацию о пользователе и его задачах для системного промпта.
+
+        Собирает:
+        - Основную информацию о пользователе
+        - Календарь задач на ближайшие 2 недели
+        - Важные предупреждения о доступном времени
+
+        Аргументы:
+            telegram_id: Уникальный идентификатор пользователя в Telegram
+
+        Возвращает:
+            Отформатированную строку с полной информацией о пользователе,
+            включая расписание на 14 дней
+
+            Для дней без задач возвращает: '[дата]: нет задач'
+        """
         user = self._user_repo.get_user_by_telegram_id(telegram_id)
         res = "\n\nКалендарь пользователя на ближайшие 2 недели: (уже сохранен, снова сохранять не нужно):\n"
         tasks = self._task_repo.get_tasks_for_ai(telegram_id)
@@ -71,14 +119,29 @@ class AiConnector:
 
 
     def _add_message(self, telegram_id: int, role: str, text: str) -> None:
-        """Метод для добавления сообщения в историю диалога"""
+        """
+        Добавляет сообщение в историю переписки пользователя.
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            role: Роль отправителя ('user' для пользователя, 'assistant' для ИИ)
+            text: Текст сообщения для сохранения
+        """
         if telegram_id not in self._user_histories:
             self._user_histories[telegram_id] = []
         self._user_histories[telegram_id].append({"role": role, "text": text})
 
 
     def _parse_response(self, response):
-        """Метод для парсинга ответа от AI"""
+        """
+        Извлекает текстовый ответ из JSON-ответа нейросети.
+
+        Аргументы:
+            response: Ответ от API Yandex GPT в формате JSON
+
+        Возвращает:
+            Текст ответа нейросети или None при ошибке парсинга
+        """
         try:
             return response['result']['alternatives'][0]['message']['text']
         except Exception:
@@ -86,7 +149,15 @@ class AiConnector:
 
 
     def _send_message(self, telegram_id):
-        """Метод для отправки сообщения в AI"""
+        """
+        Отправляет подготовленный запрос к API нейросети.
+
+        Аргументы:
+            telegram_id: ID пользователя для которого отправляется запрос
+
+        Возвращает:
+            Ответ нейросети (результат _parse_response) или None при ошибке сети
+        """
         system_prompt = self._system_prompt.copy()
         system_prompt["text"] += self._get_user_info(telegram_id)
         prompt = {
@@ -95,7 +166,6 @@ class AiConnector:
             "messages": [system_prompt] + self._user_histories[telegram_id]
         }
 
-        # print("SYSTEM:", prompt["messages"][0]["text"], sep="\n")
         try:
             response = requests.post(self._api_url, headers=self._headers, json=prompt)
             return self._parse_response(response.json())
@@ -105,7 +175,25 @@ class AiConnector:
         
 
     async def make_request(self, telegram_id: int, message_text: str):
-        """Метод для создания запроса к AI"""
+        """
+        Основной метод для взаимодействия с нейросетью (публичный интерфейс).
+
+        Полный цикл обработки:
+        1. Сохраняет сообщение пользователя
+        2. Отправляет запрос к ИИ
+        3. Обрабатывает ответ
+        4. Выполняет команды (если есть)
+        5. Отправляет уведомления через WebSocket
+        6. Возвращает ответ пользователю
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            message_text: Текст сообщения от пользователя
+
+        Возвращает:
+            Текст ответа для пользователя или сообщение об ошибке
+
+        """
         if telegram_id not in self._user_histories:
             self._user_histories[telegram_id] = []
 
