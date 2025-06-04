@@ -1,0 +1,22 @@
+site_name: ihaveplan
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_private_members: true
+  - gen-files:
+      scripts:
+        - docs/api_reference.py
+  - literate-nav:
+      nav_file: api/SUMMARY.md
+  - section-index
+
+nav:
+  - Главная: index.md
+  - API: api/
