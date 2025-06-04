@@ -2,8 +2,26 @@ from ai_connector import AiConnector
 
 
 class YandexGPTDemo:
+    """
+    Демонстрационный интерфейс для взаимодействия с Yandex GPT через AiConnector.
+
+    Предоставляет упрощенный API для:
+    - Ведения истории диалога
+    - Отправки сообщений в AI
+    - Получения ответов от AI
+    - Управления сессией общения
+    """
     def __init__(self, connector: AiConnector):
-        # Инициализация интерфейса для работы с Yandex GPT
+        """
+        Инициализирует демо-интерфейс для работы с Yandex GPT.
+
+        Аргументы:
+            connector: Экземпляр AiConnector для подключения к Yandex GPT API
+
+        Инициализирует:
+            - Подключение к API через переданный connector
+            - Начальную историю диалога с системным промптом
+        """
 
         self.connector = connector
         self.session_history = [
@@ -11,12 +29,31 @@ class YandexGPTDemo:
         ]
 
     def add_message(self, role: str, text: str) -> None:
-        # Метод для добавления сообщения в историю диалога
+        """
+        Добавляет сообщение в историю текущей сессии.
 
+        Аргументы:
+            role: Роль отправителя ('system', 'user' или 'assistant')
+            text: Текст сообщения для добавления
+        """
         self.session_history.append({"role": role, "text": text})
 
     def get_response(self, user_message: str) -> str:
-        # Метод для получения ответа от AI на сообщение пользователя
+        """
+        Получает ответ от AI на сообщение пользователя.
+
+        Аргументы:
+           user_message: Текст сообщения пользователя
+
+        Возвращает:
+           Ответ от AI в виде строки или сообщение об ошибке
+
+        Логика работы:
+           1. Добавляет сообщение пользователя в историю
+           2. Отправляет историю диалога через connector
+           3. Добавляет ответ AI в историю
+           4. Возвращает ответ пользователю
+       """
 
         self.add_message("user", user_message)
 
@@ -28,12 +65,25 @@ class YandexGPTDemo:
         return response
 
     def clear_history(self) -> None:
-        # Метод для очистки истории диалога
+        """
+        Очищает историю диалога, оставляя только системный промпт.
+        """
 
         self.session_history = self.session_history[:1]
 
 
 if __name__ == "__main__":
+    """
+    Пример использования YandexGPTDemo.
+
+    Демонстрирует:
+    1. Создание подключения к API
+    2. Инициализацию демо-интерфейса
+    3. Добавление системного промпта
+    4. Добавление пользовательского контекста
+    5. Получение ответа от AI
+    6. Вывод результата
+    """
     connector = AiConnector(api_key="AQVN0S-PrEc6lVsqi-b4n0_5qLfQZYY6j0tv_7mo")
     demo = YandexGPTDemo(connector)
 
