@@ -4,15 +4,41 @@ from database.repository import UserRepository, TaskRepository
 
 class CommandsEngine:
     """
-    Выполнение команд от ИИ.
+    Движок для выполнения команд, полученных от ИИ-ассистента.
+
+    Обеспечивает:
+    - Валидацию входящих команд
+    - Добавление, удаление и обновление задач
+    - Обновление информации о пользователе
+    - Обработку ошибок выполнения команд
     """
 
     def __init__(self, user_repo: UserRepository, task_repo: TaskRepository):
+        """
+        Инициализация движка команд.
+
+        Аргументы:
+            user_repo: Репозиторий для работы с пользователями
+            task_repo: Репозиторий для работы с задачами
+        """
         self._user_repo = user_repo
         self._task_repo = task_repo
 
     def _add_task(self, telegram_id, command: dict):
-        # Валидация параметров
+        """
+        Добавляет новую задачу для пользователя.
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            command: Словарь
+
+        Логика работы:
+            1. Проверяет наличие всех обязательных параметров
+            2. Проверяет типы параметров
+            3. Находит пользователя по telegram_id
+            4. Преобразует дату из строки в объект date
+            5. Добавляет задачу через репозиторий
+        """
         required_params = {
             "title": str,
             "start_time": str,
@@ -48,7 +74,22 @@ class CommandsEngine:
 
 
     def _delete_task(self, telegram_id, command: dict):
-        # Валидация параметров
+        """
+        Удаляет задачу пользователя.
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            command: Словарь
+
+        Логика работы:
+            1. Проверяет наличие task_id
+            2. Проверяет тип task_id
+            3. Находит пользователя
+            4. Проверяет существование задачи
+            5. Проверяет принадлежность задачи пользователю
+            6. Удаляет задачу через репозиторий
+        """
+
         if "task_id" not in command:
             raise ValueError("Missing parameter: task_id")
         if not isinstance(command["task_id"], int):
@@ -69,6 +110,19 @@ class CommandsEngine:
         
 
     def _update_user_info(self, telegram_id, command: dict):
+        """
+        Обновляет информацию о пользователе.
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            command: Словарь
+
+        Логика работы:
+            1. Проверяет наличие user_info
+            2. Проверяет тип user_info
+            3. Находит пользователя
+            4. Обновляет информацию через репозиторий
+        """
         # Валидация параметров
         if "user_info" not in command:
             raise ValueError("Missing parameter: user_info")
@@ -84,6 +138,20 @@ class CommandsEngine:
         self._user_repo.update_user(user.id, user_info=command["user_info"])
 
     def execute(self, telegram_id, command: dict):
+        """
+        Основной метод для выполнения команд.
+
+        Аргументы:
+            telegram_id: ID пользователя в Telegram
+            command: Словарь с командой
+
+
+        Логика работы:
+            1. Определяет тип команды
+            2. Вызывает соответствующий метод
+            3. Логирует выполнение команды
+
+        """
         print(f"Executing command: {command['command']} for user: {telegram_id}")
         match command["command"]:
             case "add_task":
