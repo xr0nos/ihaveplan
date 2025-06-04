@@ -1,33 +1,81 @@
 # Ihaveplan ⌚
 
-## Установка
+**Планировщик задач с ИИ**
 
-1. Создать виртуальное окружение
-```bash
-python -m venv venv
+Ihaveplan - это приложение внутри телеграма, позволяющее планировать свой день с помощью искусственного
+интеллекта YandexGPT. Общайтесь с интеллектуальным помощником в чате и просматривайте свои задачи в
+удобном календаре.
+
+## Зависимости и требования
+
+- Python 3.11+
+- Docker 27.5+
+
+Для работы проекта требуются следующие зависимости:
+```
+# Bot
+aiogram
+
+# API
+fastapi
+pydantic
+uvicorn
+websockets
+
+# Database
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+# Neural
+requests 
 ```
 
-2. Активировать виртуальное окружение
+## Установка и запуск
+
+1. Открыть бота [BotFather](https://t.me/BotFather) в телеграм и создать
+нового бота. Сохранить себе его токен.
+
+2. Зарегистрироваться на [YandexCloud](https://yandex.cloud/ru) и создать 
+API-ключ для запросов к нейросети.
+
+3. На сервере, где будет запускаться приложение, установить и запустить Docker.
+
+4. Клонировать репозиторий и перейти в корень проекта
 ```bash
-# Windows
-venv\Scripts\activate
-# Linux или MacOS
-source venv/bin/activate
+git clone https://github.com/xr0nos/ihaveplan
+cd ihaveplan
 ```
 
-3. Установить зависимости
-```bash
-cd app
-pip install -r requirements.txt
+4. В директории ./app проекта создать файл .env со следующим содержимым:
+```
+DB_URL="postgresql://<username>:<password>@postgres:5432/ihaveplan"
+BOT_TOKEN="" # Токен бота из телеграма
+GPT_API="" # api-ключ YandexCloud.
 ```
 
-4. Установить базу данных
+5. Поднять Docker-контейнеры с проектом и базой данных
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-5. Запустить проект
+6. При необходимости установить Nginx. Настроить сервер Nginx 
+для проксирования запросов к серверу на порт 8000.
+
+7. Для остановки проекта выполнить команду
 ```bash
-cd app
-python main.py
+docker compose down
+```
+
+## Документация
+
+Документация выполнена с помощью mkdocs. Чтобы посмотреть документацию в браузере,
+выполните команду:
+```bash
+mkdocs serve
+```
+
+Также документацию можно собрать в статический сайт:
+```bash
+mkdocs build
 ```
