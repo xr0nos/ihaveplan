@@ -7,6 +7,16 @@ from database.database import Base
 
 
 class User(Base):
+    """
+    Модель пользователя системы.
+
+    Атрибуты:
+        id (int): Первичный ключ
+        telegram_id (int): Уникальный идентификатор Telegram
+        name (str): Имя пользователя
+        user_info (str, optional): Дополнительная информация о пользователе
+        tasks (relationship): Связь с задачами пользователя
+    """
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -21,12 +31,35 @@ class User(Base):
 
 
 class PriorityEnum(enum.Enum):
+    """
+    Перечисление для приоритетов задач.
+    
+    Значения:
+        LOW: Низкий приоритет
+        MEDIUM: Средний приоритет (по умолчанию)
+        HIGH: Высокий приоритет
+    """
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
 
 class Task(Base):
+    """
+    Модель задачи пользователя.
+
+    Атрибуты:
+        id (int): Первичный ключ
+        title (str): Название задачи
+        start_time (str, optional): Время начала (формат HH:MM)
+        end_time (str, optional): Время окончания (формат HH:MM)
+        priority (PriorityEnum): Приоритет задачи
+        completed (bool): Статус выполнения
+        date (date): Дата выполнения задачи
+        ai_notes (str, optional): Заметки ИИ
+        user_id (int): Внешний ключ пользователя
+        user (relationship): Связь с пользователем
+    """
     __tablename__ = 'tasks'
 
     id = Column(Integer, primary_key=True, autoincrement=True)

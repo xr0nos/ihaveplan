@@ -14,7 +14,11 @@ from database.repository import UserRepository,TaskRepository
 from .websocket_manager import WebSocketManager
 
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    """Middleware для автоматического перенаправления HTTP-запросов на HTTPS."""
     async def dispatch(self, request: Request, call_next):
+        """
+        Обрабатывает входящие запросы и модифицирует Location-заголовок для HTTPS.
+        """
         response = await call_next(request)
         if response.status_code == 307 and 'location' in response.headers:
             location = response.headers['location']
@@ -49,22 +53,26 @@ app.add_middleware(
 
 # Pydantic модели для запросов и ответов
 class PriorityEnum(str, Enum):
+    """Приоритет задачи."""
     low = "low"
     medium = "medium"
     high = "high"
 
 
 class UserBase(BaseModel):
+    """Базовая модель пользователя."""
     name: str
     user_info: Optional[str] = None
     telegram_id: int
 
 
 class UserCreate(UserBase):
+    """Модель для создания пользователя."""
     pass
 
 
 class UserResponse(UserBase):
+    """Модель ответа с данными пользователя."""
     id: int
 
     class Config:
@@ -72,6 +80,7 @@ class UserResponse(UserBase):
 
 
 class TaskBase(BaseModel):
+    """Базовая модель задачи."""
     title: str
     start_time: Optional[str] = None
     end_time: Optional[str] = None
@@ -82,10 +91,12 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
+    """Модель для создания задачи."""
     user_id: int
 
 
 class TaskUpdate(TaskBase):
+    """Модель для обновления задачи."""
     title: Optional[str] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
@@ -96,6 +107,7 @@ class TaskUpdate(TaskBase):
 
 
 class TaskResponse(TaskBase):
+    """Модель ответа с данными задачи."""
     id: int
     user_id: int
 
@@ -105,6 +117,7 @@ class TaskResponse(TaskBase):
 
 @app.websocket("/ws/{telegram_id}")
 async def websocket_endpoint(websocket: WebSocket, telegram_id: int):
+    """WebSocket-эндпоинт для уведомлений о задачах."""
     await websocket_manager.connect(websocket, telegram_id)
     try:
         while True:
@@ -113,7 +126,9 @@ async def websocket_endpoint(websocket: WebSocket, telegram_id: int):
         websocket_manager.disconnect(websocket, telegram_id)
 
 @app.post("/tasks/", response_model=TaskResponse)
+
 async def create_task(task: TaskCreate):
+    """Создаёт новую задачу."""
     try:
         task_id = task_repo.add_task(
             user_id=task.user_id,
@@ -138,6 +153,7 @@ async def create_task(task: TaskCreate):
 # Модифицируем существующие эндпоинты для отправки уведомлений
 @app.post("/users/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate):
+    """Создаёт нового пользователя."""
     try:
         user_id = user_repo.add_user(
             name=user.name,
@@ -153,6 +169,7 @@ async def create_user(user: UserCreate):
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 def read_user(user_id: int):
+    """Получает данные пользователя по ID."""
     user = user_repo.get_user(user_id)
     if not user:
         raise HTTPException(
@@ -164,6 +181,7 @@ def read_user(user_id: int):
 
 @app.get("/users_tg/{telegram_id}", response_model=UserResponse)
 def read_user_by_telegram_id(telegram_id: int):
+    """Получает данные пользователя по Telegram ID."""
     user = user_repo.get_user_by_telegram_id(telegram_id)
     if not user:
         raise HTTPException(
@@ -176,6 +194,7 @@ def read_user_by_telegram_id(telegram_id: int):
 # Эндпоинты для задач
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def read_task(task_id: int):
+    """Получает задачу по ID."""
     task = task_repo.get_task(task_id)
     if not task:
         raise HTTPException(
@@ -187,6 +206,7 @@ def read_task(task_id: int):
 
 @app.get("/users/{user_id}/tasks/", response_model=List[TaskResponse])
 def read_user_tasks(user_id: int):
+    """ Получает все задачи пользователя."""
     if not user_repo.get_user(user_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -197,6 +217,7 @@ def read_user_tasks(user_id: int):
 
 @app.get("/users_tg/{telegram_id}/tasks/", response_model=List[TaskResponse])
 def read_user_tasks(telegram_id: int):
+    """Получает все задачи пользователя по Telegram ID."""
     user = user_repo.get_user_by_telegram_id(telegram_id)
     if not user:
         raise HTTPException(
@@ -208,6 +229,7 @@ def read_user_tasks(telegram_id: int):
 
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task: TaskUpdate):
+    """Обновляет задачу."""
     existing_task = task_repo.get_task(task_id)
     if not existing_task:
         raise HTTPException(
@@ -229,6 +251,7 @@ def update_task(task_id: int, task: TaskUpdate):
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int):
+    """Удаляет задачу."""
     task = task_repo.get_task(task_id)
     if not task:
         raise HTTPException(

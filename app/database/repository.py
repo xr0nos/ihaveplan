@@ -7,10 +7,13 @@ from database.models import User, PriorityEnum, Task
 
 
 class UserRepository:
+    """Репозиторий для работы с пользователями в базе данных"""
     def __init__(self, db: Database):
+        """Инициализация с подключением к базе данных"""
         self.db = db
 
     def add_user(self, name: str, telegram_id: int, user_info: str = None) -> int:
+        """Добавление нового пользователя"""
         session = self.db.get_session()
         try:
             user = User(name=name, user_info=user_info, telegram_id=telegram_id)
@@ -24,6 +27,7 @@ class UserRepository:
             session.close()
 
     def update_user(self, user_id: int, name: str = None, user_info: str = None):
+        """Обновление данных пользователя"""
         session = self.db.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -41,6 +45,7 @@ class UserRepository:
             session.close()
 
     def delete_user(self, user_id: int):
+        """Удаление пользователя"""
         session = self.db.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -54,6 +59,7 @@ class UserRepository:
             session.close()
 
     def get_user(self, user_id: int) -> User:
+        """Получение пользователя по ID"""
         session = self.db.get_session()
         try:
             return session.query(User).filter_by(id=user_id).first()
@@ -61,6 +67,7 @@ class UserRepository:
             session.close()
 
     def get_user_by_telegram_id(self, telegram_id: int) -> User:
+        """Получение пользователя по Telegram ID"""
         session = self.db.get_session()
         try:
             return session.query(User).filter_by(telegram_id=telegram_id).first()
@@ -68,12 +75,15 @@ class UserRepository:
             session.close()
 
 class TaskRepository:
+    """Репозиторий для работы с задачами в базе данных"""
     def __init__(self, db: Database):
+        """Инициализация с подключением к базе данных"""
         self.db = db
 
     def add_task(self, user_id: int, title: str, start_time: str = None, 
                  end_time: str = None, priority: str = "medium", completed: bool = False, 
                  date: date = None, ai_notes: str = None) -> int:
+        """Добавление новой задачи"""
         session = self.db.get_session()
         try:
             priority_enum = PriorityEnum(priority.lower())
@@ -95,6 +105,7 @@ class TaskRepository:
     def update_task(self, task_id: int, title: str = None, start_time: str = None, 
                     end_time: str = None, priority: str = None, completed: bool = None, 
                     date: date = None, ai_notes: str = None):
+        """Обновление данных задачи"""
         session = self.db.get_session()
         try:
             task = session.query(Task).filter_by(id=task_id).first()
@@ -125,6 +136,7 @@ class TaskRepository:
             session.close()
 
     def delete_task(self, task_id: int):
+        """Удаление задачи"""
         session = self.db.get_session()
         try:
             task = session.query(Task).filter_by(id=task_id).first()
@@ -138,6 +150,7 @@ class TaskRepository:
             session.close()
 
     def get_tasks_by_user(self, user_id: int) -> list[Task]:
+        """Получение всех задач пользователя"""
         session = self.db.get_session()
         try:
             return session.query(Task).filter_by(user_id=user_id).all()
@@ -145,6 +158,7 @@ class TaskRepository:
             session.close()
 
     def get_tasks_by_time_range(self, user_id: int, start_range: date, end_range: date) -> list[Task]:
+        """Получение задач пользователя за указанный период"""
         session = self.db.get_session()
         try:
             if start_range > end_range:
@@ -181,6 +195,7 @@ class TaskRepository:
             session.close()
 
     def get_task(self, task_id: int) -> Optional[Task]:
+        """Получение задачи по ID"""
         session = self.db.get_session()
         try:
             return session.query(Task).filter(Task.id == task_id).first()
